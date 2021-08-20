@@ -1,0 +1,60 @@
+---
+kind: pipeline
+name: no-cache
+
+steps:
+  - name: init-fakes3
+    image: amazon/aws-cli
+    environment:
+      AWS_ACCESS_KEY_ID: 1234
+      AWS_SECRET_ACCESS_KEY: 1234
+    commands:
+      - "aws --endpoint-url='http://fakes3:4567' s3 mb s3://fakes3 --region us-west-1"
+
+  - name: no cache
+    image: maven:3.6.3-adoptopenjdk-11
+    environment:
+      MAVEN_OPTS: "-Dmaven.repo.local=.m2"
+    commands:
+      - "mvn -e --no-transfer-progress package"
+
+  - name: rebuild-cache
+    image: plugins/s3-cache
+    settings:
+      pull: true
+      endpoint: http://fakes3:4567
+      access_key: 1234
+      secret_key: 1234
+      rebuild: true
+      root: fakes3
+      mount:
+        - .m2
+
+  - name: cleanup
+    image: maven:3.6.3-adoptopenjdk-11
+    commands:
+      - rm -rf .m2 && rm -rf target
+
+  - name: restore-cache
+    image: plugins/s3-cache
+    settings:
+      pull: true
+      endpoint: http://fakes3:4567
+      access_key: 1234
+      secret_key: 1234
+      restore: true
+      root: fakes3
+
+  - name: with cache
+    image: maven:3.6.3-adoptopenjdk-11
+    environment:
+      MAVEN_OPTS: "-Dmaven.repo.local=.m2"
+    commands:
+      - "mvn -e --no-transfer-progress package"
+
+services:
+  - name: fakes3
+    image: sukolenvo/fake-s3
+    environment:
+      FAKE_S3_LICENSE:
+        from_secret: fake_s3_license

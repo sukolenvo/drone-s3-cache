@@ -1,0 +1,1 @@
+A sample project to configure drone s3 cache for a maven dependencies.
