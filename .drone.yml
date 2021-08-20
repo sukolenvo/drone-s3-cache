@@ -21,7 +21,7 @@ steps:
     environment:
       MAVEN_OPTS: "-Dmaven.repo.local=.m2"
     commands:
-      - "mvn -e --no-transfer-progress package"
+      - "mvn package"
 
   - name: rebuild-cache
     image: plugins/s3-cache
@@ -55,7 +55,7 @@ steps:
     environment:
       MAVEN_OPTS: "-Dmaven.repo.local=.m2"
     commands:
-      - "mvn -e --no-transfer-progress package"
+      - "mvn package"
 
 services:
   - name: fakes3
