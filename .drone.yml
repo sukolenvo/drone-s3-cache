@@ -3,6 +3,11 @@ kind: pipeline
 name: no-cache
 
 steps:
+  - name: pull-image
+    image: sukolenvo/fake-s3
+    commands:
+      - "echo 'Image fake-s3 pulled and service is read!'"
+      
   - name: init-fakes3
     image: amazon/aws-cli
     environment:
